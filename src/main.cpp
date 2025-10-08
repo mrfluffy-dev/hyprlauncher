@@ -7,6 +7,15 @@
 #include "config/ConfigManager.hpp"
 
 int main(int argc, char** argv, char** envp) {
+
+    auto socket = makeShared<CClientIPCSocket>();
+
+    if (socket->m_connected) {
+        Debug::log(LOG, "Active instance already, opening launcher.");
+        socket->sendOpen();
+        return 0;
+    }
+
     g_desktopFinder = makeUnique<CDesktopFinder>();
     g_unicodeFinder = makeUnique<CUnicodeFinder>();
 
@@ -20,14 +29,6 @@ int main(int argc, char** argv, char** envp) {
             Debug::quiet = true;
             continue;
         }
-    }
-
-    auto socket = makeShared<CClientIPCSocket>();
-
-    if (socket->m_connected) {
-        Debug::log(LOG, "Active instance already, opening launcher.");
-        socket->sendOpen();
-        return 0;
     }
 
     socket.reset();
