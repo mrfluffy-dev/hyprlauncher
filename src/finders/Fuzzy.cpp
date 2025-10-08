@@ -55,7 +55,7 @@ static float jaroWinkler(const std::string& a, const std::string& b) {
     return (m / LENGTH_A + m / LENGTH_B + (m - tps) / m) / 3.0f;
 }
 
-static float jaroWinklerFull(const std::string& a, const std::string& b, float prefixScale = 0.1F) {
+static float jaroWinklerFull(const std::string& a, const std::string& b, float prefixScale = 0.1F, float substrScale = 0.4F) {
     const float  JARO_RESULT = jaroWinkler(a, b);
     size_t       prefixLen   = 0;
     const size_t MAXPREFIX   = 4;
@@ -64,7 +64,7 @@ static float jaroWinklerFull(const std::string& a, const std::string& b, float p
         ++prefixLen;
     }
 
-    return JARO_RESULT + (sc<float>(prefixLen) * prefixScale * (1.F - JARO_RESULT));
+    return JARO_RESULT + (sc<float>(prefixLen) * prefixScale * (1.F - JARO_RESULT)) + (b.contains(a) ? substrScale : 0.F);
 }
 
 struct SScoreData {
