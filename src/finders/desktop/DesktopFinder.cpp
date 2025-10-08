@@ -62,12 +62,25 @@ class CDesktopEntry : public IFinderResult {
     std::string m_name, m_exec, m_icon, m_fuzzable;
 };
 
-static constexpr std::array<const char*, 2> DESKTOP_ENTRY_PATHS = {"/usr/local/share/applications", "/usr/share/applications"};
+static constexpr std::array<const char*, 3> DESKTOP_ENTRY_PATHS = {"/usr/local/share/applications", "/usr/share/applications", "~/.local/share/applications"};
+
+//
+static std::string resolvePath(std::string p) {
+    if (p[0] != '~')
+        return p;
+
+    const auto HOME = getenv("HOME");
+
+    if (!HOME)
+        return "";
+
+    return HOME + p.substr(1);
+}
 
 CDesktopFinder::CDesktopFinder() {
     for (const auto& PATH : DESKTOP_ENTRY_PATHS) {
         std::error_code ec;
-        auto            it = std::filesystem::directory_iterator(PATH, ec);
+        auto            it = std::filesystem::directory_iterator(resolvePath(PATH), ec);
         if (ec)
             continue;
         for (const auto& e : it) {
