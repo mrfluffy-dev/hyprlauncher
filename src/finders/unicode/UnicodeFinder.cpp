@@ -82,6 +82,8 @@ std::vector<SFinderResult> CUnicodeFinder::getResultsForQuery(const std::string&
     results.reserve(fuzzed.size());
 
     for (const auto& f : fuzzed) {
+        if (!f)
+            continue;
         const auto p = reinterpretPointerCast<CUnicodeEntry>(f);
         results.emplace_back(SFinderResult{
             .label  = p->m_unicode + " -> " + p->m_name,

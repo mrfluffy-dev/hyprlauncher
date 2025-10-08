@@ -48,6 +48,9 @@ CQueryProcessor::CQueryProcessor() {
 
             const auto [FINDER, eat] = finderForPrefix(query[0]);
 
+            if (eat && query.size() == 1)
+                continue;
+
             auto RESULTS = FINDER ? FINDER->getResultsForQuery(eat ? query.substr(1) : query) : std::vector<SFinderResult>{};
 
             if (g_ui->m_backend)

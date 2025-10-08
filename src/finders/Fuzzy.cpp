@@ -1,5 +1,8 @@
 #include "Fuzzy.hpp"
 #include <algorithm>
+#include <thread>
+
+#include <unistd.h>
 
 static float jaroWinkler(const std::string& a, const std::string& b) {
     const auto LENGTH_A = a.size();
@@ -69,13 +72,42 @@ struct SScoreData {
     SP<IFinderResult> result;
 };
 
+static void workerFn(std::vector<SScoreData>& scores, const std::vector<SP<IFinderResult>>& in, const std::string& query, size_t start, size_t end) {
+    for (size_t i = start; i < end; ++i) {
+        auto& ref  = scores[i];
+        ref.score  = jaroWinklerFull(query, in[i]->fuzzable());
+        ref.result = in[i];
+    }
+}
+
 std::vector<SP<IFinderResult>> Fuzzy::getNResults(const std::vector<SP<IFinderResult>>& in, const std::string& query, size_t results) {
     std::vector<SScoreData> scores;
     scores.resize(in.size());
 
-    for (size_t i = 0; i < in.size(); ++i) {
-        scores[i] = {.score = jaroWinklerFull(query, in[i]->fuzzable()), .result = in[i]};
+    // to analyze scores, run this op in parallel
+    auto THREADS = sysconf(_SC_NPROCESSORS_ONLN);
+    if (THREADS < 1)
+        THREADS = 8;
+
+    std::vector<std::thread> workerThreads;
+    workerThreads.resize(THREADS);
+    size_t workElDone = 0, workElPerThread = in.size() / THREADS;
+    for (long i = 0; i < THREADS; ++i) {
+        if (i == THREADS - 1) {
+            workerThreads[i] = std::thread([&] { workerFn(scores, in, query, workElDone, in.size()); });
+            break;
+        } else
+            workerThreads[i] = std::thread([&] { workerFn(scores, in, query, workElDone, workElDone + workElPerThread); });
+
+        workElDone += workElPerThread;
     }
+
+    for (auto& t : workerThreads) {
+        if (t.joinable())
+            t.join();
+    }
+
+    workerThreads.clear();
 
     std::partial_sort(scores.begin(), scores.begin() + std::min(results, in.size()), scores.end(), [](const auto& a, const auto& b) { return a.score > b.score; });
 

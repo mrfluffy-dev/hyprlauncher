@@ -39,7 +39,6 @@ add_compile_options(
   -Wno-unused-parameter
   -Wno-unused-value
   -Wno-missing-field-initializers
-  -fsanitize=address
   -Wpedantic)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
@@ -55,6 +54,6 @@ file(GLOB_RECURSE SRCFILES CONFIGURE_DEPENDS "src/*.cpp" "include/*.hpp")
 
 add_executable(hyprlauncher ${SRCFILES})
 
-target_link_libraries(hyprlauncher asan PkgConfig::deps)
+target_link_libraries(hyprlauncher PkgConfig::deps)
 
 install(TARGETS hyprlauncher)
