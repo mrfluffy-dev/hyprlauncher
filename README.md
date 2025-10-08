@@ -9,3 +9,6 @@ A multipurpose and versatile launcher / picker for Hyprland
 - Daemon by default
 - Very fast opening
 
+## Runtime dependencies
+
+- Unicode: `wl-copy`
