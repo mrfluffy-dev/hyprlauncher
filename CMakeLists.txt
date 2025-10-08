@@ -28,6 +28,8 @@ pkg_check_modules(
   libdrm
   hyprutils
   hyprwire
+  icu-uc
+  hyprlang
 )
 
 set(CMAKE_CXX_STANDARD 23)

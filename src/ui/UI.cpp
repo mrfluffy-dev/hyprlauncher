@@ -4,6 +4,7 @@
 #include "../query/QueryProcessor.hpp"
 #include "../socket/ServerSocket.hpp"
 #include "../helpers/Log.hpp"
+#include "../config/ConfigManager.hpp"
 
 #include <hyprutils/string/String.hpp>
 #include <xkbcommon/xkbcommon-keysyms.h>
@@ -103,6 +104,8 @@ void CUI::run() {
             g_serverIPCSocket->m_socket->dispatchEvents(false);
         });
     }
+
+    m_backend->addFd(g_configManager->m_inotifyFd.get(), [] { g_configManager->onInotifyEvent(); });
 
     m_backend->enterLoop();
 }

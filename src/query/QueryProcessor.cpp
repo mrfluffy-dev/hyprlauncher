@@ -1,7 +1,30 @@
 #include "QueryProcessor.hpp"
 #include "../ui/UI.hpp"
+#include "../config/ConfigManager.hpp"
 
 #include "../finders/desktop/DesktopFinder.hpp"
+#include "../finders/unicode/UnicodeFinder.hpp"
+
+static WP<IFinder> finderForName(const std::string& x) {
+    if (x == "desktop")
+        return g_desktopFinder;
+    if (x == "unicode")
+        return g_unicodeFinder;
+    return WP<IFinder>{};
+}
+
+static std::pair<WP<IFinder>, bool> finderForPrefix(const char x) {
+    static auto PDEFAULTFINDER = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "default_finder");
+
+    static auto PDESKTOPPREFIX = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "desktop_prefix");
+    static auto PUNICODEPREFIX = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "unicode_prefix");
+
+    if (x == (*PDESKTOPPREFIX)[0])
+        return {g_desktopFinder, true};
+    if (x == (*PUNICODEPREFIX)[0])
+        return {g_unicodeFinder, true};
+    return {finderForName(*PDEFAULTFINDER), false};
+}
 
 CQueryProcessor::CQueryProcessor() {
     m_queryThread = std::thread([this] {
@@ -23,7 +46,9 @@ CQueryProcessor::CQueryProcessor() {
             if (query.empty())
                 continue;
 
-            auto RESULTS = g_desktopFinder->getResultsForQuery(query);
+            const auto [FINDER, eat] = finderForPrefix(query[0]);
+
+            auto RESULTS = FINDER ? FINDER->getResultsForQuery(eat ? query.substr(1) : query) : std::vector<SFinderResult>{};
 
             if (g_ui->m_backend)
                 g_ui->m_backend->addIdle([r = std::move(RESULTS)] mutable { g_ui->updateResults(std::move(r)); });
