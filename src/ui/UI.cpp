@@ -15,7 +15,7 @@ using namespace Hyprutils::String;
 constexpr const size_t MAX_RESULTS_IN_LAUNCHER = 25;
 
 CUI::CUI() {
-    static auto PGRABFOCUS = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "general:grab_focus");
+    static auto PGRABFOCUS = Hyprlang::CSimpleConfigValue<Hyprlang::INT>(g_configManager->m_config.get(), "general:grab_focus");
 
     m_backend = Hyprtoolkit::CBackend::create();
 
