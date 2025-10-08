@@ -16,15 +16,6 @@ constexpr const size_t MAX_RESULTS_IN_LAUNCHER = 25;
 
 CUI::CUI() {
     m_backend = Hyprtoolkit::CBackend::create();
-    m_window  = Hyprtoolkit::CWindowBuilder::begin()
-                   ->appClass("hyprlauncher")
-                   ->type(Hyprtoolkit::HT_WINDOW_LAYER)
-                   ->preferredSize({400, 260})
-                   ->anchor(1 | 2 | 4 | 8)
-                   ->exclusiveZone(-1)
-                   ->layer(3)
-                   ->kbInteractive(2)
-                   ->commence();
 
     m_background = Hyprtoolkit::CRectangleBuilder::begin()
                        ->color([this] { return m_backend->getPalette()->m_colors.background; })
@@ -59,8 +50,6 @@ CUI::CUI() {
     m_resultsLayout =
         Hyprtoolkit::CColumnLayoutBuilder::begin()->size({Hyprtoolkit::CDynamicSize::HT_SIZE_PERCENT, Hyprtoolkit::CDynamicSize::HT_SIZE_AUTO, {1, 1}})->gap(2)->commence();
 
-    m_window->m_rootElement->addChild(m_background);
-
     m_background->addChild(m_layout);
 
     m_layout->addChild(m_inputBox);
@@ -68,23 +57,6 @@ CUI::CUI() {
     m_layout->addChild(m_scrollArea);
 
     m_scrollArea->addChild(m_resultsLayout);
-
-    m_window->m_events.keyboardKey.listenStatic([this](Hyprtoolkit::Input::SKeyboardKeyEvent e) {
-        if (e.xkbKeysym == XKB_KEY_Escape)
-            setWindowOpen(false);
-        else if (e.xkbKeysym == XKB_KEY_Down) {
-            if (m_activeElementId < m_currentResults.size())
-                m_activeElementId++;
-            updateActive();
-        } else if (e.xkbKeysym == XKB_KEY_Up) {
-            if (m_activeElementId > 0)
-                m_activeElementId--;
-            updateActive();
-        } else if (e.xkbKeysym == XKB_KEY_Return) {
-            m_currentResults.at(m_activeElementId).result->run();
-            setWindowOpen(false);
-        }
-    });
 }
 
 CUI::~CUI() = default;
@@ -111,6 +83,8 @@ void CUI::run() {
 }
 
 void CUI::setWindowOpen(bool open) {
+    static auto PGRABFOCUS = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "general:grab_focus");
+
     if (open == m_open)
         return;
 
@@ -126,7 +100,7 @@ void CUI::setWindowOpen(bool open) {
                        ->anchor(1 | 2 | 4 | 8)
                        ->exclusiveZone(-1)
                        ->layer(3)
-                       ->kbInteractive(2)
+                       ->kbInteractive(*PGRABFOCUS ? 1 : 2)
                        ->commence();
 
         m_window->m_rootElement->addChild(m_background);

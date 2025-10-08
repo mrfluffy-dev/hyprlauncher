@@ -14,10 +14,10 @@ static WP<IFinder> finderForName(const std::string& x) {
 }
 
 static std::pair<WP<IFinder>, bool> finderForPrefix(const char x) {
-    static auto PDEFAULTFINDER = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "default_finder");
+    static auto PDEFAULTFINDER = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "finders:default_finder");
 
-    static auto PDESKTOPPREFIX = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "desktop_prefix");
-    static auto PUNICODEPREFIX = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "unicode_prefix");
+    static auto PDESKTOPPREFIX = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "finders:desktop_prefix");
+    static auto PUNICODEPREFIX = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "finders:unicode_prefix");
 
     if (x == (*PDESKTOPPREFIX)[0])
         return {g_desktopFinder, true};
