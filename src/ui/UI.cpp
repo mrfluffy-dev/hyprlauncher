@@ -15,6 +15,8 @@ using namespace Hyprutils::String;
 constexpr const size_t MAX_RESULTS_IN_LAUNCHER = 25;
 
 CUI::CUI() {
+    static auto PGRABFOCUS = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "general:grab_focus");
+
     m_backend = Hyprtoolkit::CBackend::create();
 
     m_background = Hyprtoolkit::CRectangleBuilder::begin()
@@ -57,6 +59,36 @@ CUI::CUI() {
     m_layout->addChild(m_scrollArea);
 
     m_scrollArea->addChild(m_resultsLayout);
+
+    //
+    m_window = Hyprtoolkit::CWindowBuilder::begin()
+                   ->appClass("hyprlauncher")
+                   ->type(Hyprtoolkit::HT_WINDOW_LAYER)
+                   ->preferredSize({400, 260})
+                   ->anchor(1 | 2 | 4 | 8)
+                   ->exclusiveZone(-1)
+                   ->layer(3)
+                   ->kbInteractive(*PGRABFOCUS ? 1 : 2)
+                   ->commence();
+
+    m_window->m_rootElement->addChild(m_background);
+
+    m_window->m_events.keyboardKey.listenStatic([this](Hyprtoolkit::Input::SKeyboardKeyEvent e) {
+        if (e.xkbKeysym == XKB_KEY_Escape)
+            setWindowOpen(false);
+        else if (e.xkbKeysym == XKB_KEY_Down) {
+            if (m_activeElementId < m_resultButtons.size())
+                m_activeElementId++;
+            updateActive();
+        } else if (e.xkbKeysym == XKB_KEY_Up) {
+            if (m_activeElementId > 0)
+                m_activeElementId--;
+            updateActive();
+        } else if (e.xkbKeysym == XKB_KEY_Return) {
+            m_currentResults.at(m_activeElementId).result->run();
+            setWindowOpen(false);
+        }
+    });
 }
 
 CUI::~CUI() = default;
@@ -83,53 +115,18 @@ void CUI::run() {
 }
 
 void CUI::setWindowOpen(bool open) {
-    static auto PGRABFOCUS = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "general:grab_focus");
-
     if (open == m_open)
         return;
 
     m_open = open;
 
     if (open) {
-        // FIXME: why does the LS take like 5s to open if we just do close() open()?!
-
-        m_window = Hyprtoolkit::CWindowBuilder::begin()
-                       ->appClass("hyprlauncher")
-                       ->type(Hyprtoolkit::HT_WINDOW_LAYER)
-                       ->preferredSize({400, 260})
-                       ->anchor(1 | 2 | 4 | 8)
-                       ->exclusiveZone(-1)
-                       ->layer(3)
-                       ->kbInteractive(*PGRABFOCUS ? 1 : 2)
-                       ->commence();
-
-        m_window->m_rootElement->addChild(m_background);
-
-        m_window->m_events.keyboardKey.listenStatic([this](Hyprtoolkit::Input::SKeyboardKeyEvent e) {
-            if (e.xkbKeysym == XKB_KEY_Escape)
-                setWindowOpen(false);
-            else if (e.xkbKeysym == XKB_KEY_Down) {
-                if (m_activeElementId < m_resultButtons.size())
-                    m_activeElementId++;
-                updateActive();
-            } else if (e.xkbKeysym == XKB_KEY_Up) {
-                if (m_activeElementId > 0)
-                    m_activeElementId--;
-                updateActive();
-            } else if (e.xkbKeysym == XKB_KEY_Return) {
-                m_currentResults.at(m_activeElementId).result->run();
-                setWindowOpen(false);
-            }
-        });
-
         m_window->open();
 
         m_inputBox->rebuild()->defaultText("")->commence();
         m_inputBox->focus();
-    } else {
+    } else
         m_window->close();
-        m_window.reset();
-    }
 }
 
 bool CUI::windowOpen() {
