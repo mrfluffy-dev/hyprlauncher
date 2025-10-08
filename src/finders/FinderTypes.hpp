@@ -2,6 +2,6 @@
 
 #include <cstdint>
 
-enum eFinderTypes : uint8_t{
+enum eFinderTypes : uint8_t {
     FINDER_DESKTOP = 0,
 };

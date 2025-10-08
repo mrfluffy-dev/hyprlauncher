@@ -11,6 +11,8 @@
 using namespace Hyprutils::Math;
 using namespace Hyprutils::String;
 
+constexpr const size_t MAX_RESULTS_IN_LAUNCHER = 25;
+
 CUI::CUI() {
     m_backend = Hyprtoolkit::CBackend::create();
     m_window  = Hyprtoolkit::CWindowBuilder::begin()
@@ -70,7 +72,7 @@ CUI::CUI() {
         if (e.xkbKeysym == XKB_KEY_Escape)
             setWindowOpen(false);
         else if (e.xkbKeysym == XKB_KEY_Down) {
-            if (m_activeElementId < m_resultButtons.size())
+            if (m_activeElementId < m_currentResults.size())
                 m_activeElementId++;
             updateActive();
         } else if (e.xkbKeysym == XKB_KEY_Up) {
@@ -87,6 +89,12 @@ CUI::CUI() {
 CUI::~CUI() = default;
 
 void CUI::run() {
+    m_resultButtons.reserve(MAX_RESULTS_IN_LAUNCHER);
+    for (size_t i = 0; i < MAX_RESULTS_IN_LAUNCHER; ++i) {
+        auto b = m_resultButtons.emplace_back(makeShared<CResultButton>());
+        m_resultsLayout->addChild(b->m_background);
+    }
+
     setWindowOpen(true);
 
     if (g_serverIPCSocket->m_socket) {
@@ -115,7 +123,7 @@ void CUI::setWindowOpen(bool open) {
                        ->anchor(1 | 2 | 4 | 8)
                        ->exclusiveZone(-1)
                        ->layer(3)
-                       ->kbInteractive(1)
+                       ->kbInteractive(2)
                        ->commence();
 
         m_window->m_rootElement->addChild(m_background);
@@ -154,14 +162,10 @@ bool CUI::windowOpen() {
 void CUI::updateResults(std::vector<SFinderResult>&& results) {
     m_currentResults = std::move(results);
 
-    m_resultsLayout->clearChildren();
-    m_resultButtons.clear();
-
     m_activeElementId = 0;
 
-    for (size_t i = 0; i < m_currentResults.size(); ++i) {
-        auto b = m_resultButtons.emplace_back(makeShared<CResultButton>(m_currentResults[i]));
-        m_resultsLayout->addChild(b->m_background);
+    for (size_t i = 0; i < m_resultButtons.size(); ++i) {
+        m_resultButtons[i]->setLabel(m_currentResults.size() <= i ? "" : m_currentResults[i].label);
     }
 
     if (m_resultButtons.size() > 0)

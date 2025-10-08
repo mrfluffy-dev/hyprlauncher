@@ -17,7 +17,7 @@ struct SFinderResult;
 
 class CResultButton {
   public:
-    CResultButton(SFinderResult& r);
+    CResultButton();
     ~CResultButton() = default;
 
     SP<Hyprtoolkit::CRectangleElement> m_background;
@@ -25,7 +25,9 @@ class CResultButton {
     SP<Hyprtoolkit::CTextElement>      m_label;
 
     void                               setActive(bool active);
+    void                               setLabel(const std::string& x);
 
   private:
-    bool m_active = false;
+    bool        m_active    = false;
+    std::string m_lastLabel = "";
 };
