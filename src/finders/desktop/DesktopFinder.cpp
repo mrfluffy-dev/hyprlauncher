@@ -1,5 +1,6 @@
 #include "DesktopFinder.hpp"
 #include "../../helpers/Log.hpp"
+#include "../Fuzzy.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -29,6 +30,10 @@ class CDesktopEntry : public IFinderResult {
     CDesktopEntry()          = default;
     virtual ~CDesktopEntry() = default;
 
+    virtual std::string fuzzable() {
+        return m_fuzzable;
+    }
+
     virtual eFinderTypes type() {
         return FINDER_DESKTOP;
     }
@@ -54,7 +59,7 @@ class CDesktopEntry : public IFinderResult {
         proc.runAsync();
     }
 
-    std::string m_name, m_exec, m_icon;
+    std::string m_name, m_exec, m_icon, m_fuzzable;
 };
 
 static constexpr std::array<const char*, 2> DESKTOP_ENTRY_PATHS = {"/usr/local/share/applications", "/usr/share/applications"};
@@ -117,26 +122,31 @@ void CDesktopFinder::cacheEntry(const std::string& path) {
         return;
     }
 
-    auto& e   = m_desktopEntryCache.emplace_back(makeShared<CDesktopEntry>());
-    e->m_exec = EXEC;
-    e->m_icon = ICON;
-    e->m_name = NAME;
+    auto& e       = m_desktopEntryCache.emplace_back(makeShared<CDesktopEntry>());
+    e->m_exec     = EXEC;
+    e->m_icon     = ICON;
+    e->m_name     = NAME;
+    e->m_fuzzable = NAME;
+    std::ranges::transform(e->m_fuzzable, e->m_fuzzable.begin(), ::tolower);
+    m_desktopEntryCacheGeneric.emplace_back(e);
 
     Debug::log(TRACE, "Cached: {} with icon {} and exec line of \"{}\"", NAME, ICON, EXEC);
 }
 
 std::vector<SFinderResult> CDesktopFinder::getResultsForQuery(const std::string& query) {
     std::vector<SFinderResult> results;
-    for (const auto& c : m_desktopEntryCache) {
-        if (results.size() >= MAX_RESULTS_PER_FINDER)
-            break;
 
-        auto lower = c->m_name;
-        std::ranges::transform(lower, lower.begin(), ::tolower);
+    auto                       fuzzed = Fuzzy::getNResults(m_desktopEntryCacheGeneric, query, MAX_RESULTS_PER_FINDER);
 
-        // FIXME: this has to be fuzzy.
-        if (lower.contains(query))
-            results.emplace_back(SFinderResult{.label = c->m_name, .icon = c->m_icon, .result = c});
+    results.reserve(fuzzed.size());
+
+    for (const auto& f : fuzzed) {
+        const auto p = reinterpretPointerCast<CDesktopEntry>(f);
+        results.emplace_back(SFinderResult{
+            .label  = p->m_name,
+            .icon   = p->m_icon,
+            .result = p,
+        });
     }
 
     return results;

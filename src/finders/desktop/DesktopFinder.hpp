@@ -13,6 +13,7 @@ class CDesktopFinder : public IFinder {
 
   private:
     std::vector<SP<CDesktopEntry>> m_desktopEntryCache;
+    std::vector<SP<IFinderResult>> m_desktopEntryCacheGeneric;
 
     void                           cacheEntry(const std::string& path);
 };
