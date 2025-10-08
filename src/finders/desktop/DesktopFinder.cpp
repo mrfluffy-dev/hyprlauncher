@@ -155,6 +155,8 @@ std::vector<SFinderResult> CDesktopFinder::getResultsForQuery(const std::string&
 
     for (const auto& f : fuzzed) {
         const auto p = reinterpretPointerCast<CDesktopEntry>(f);
+        if (!p)
+            continue;
         results.emplace_back(SFinderResult{
             .label  = p->m_name,
             .icon   = p->m_icon,
