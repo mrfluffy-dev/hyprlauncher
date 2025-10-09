@@ -35,6 +35,7 @@ CUI::CUI() {
                      ->placeholder("Search something...")
                      ->onTextEdited([](SP<Hyprtoolkit::CTextboxElement>, const std::string& query) { g_queryProcessor->scheduleQueryUpdate(query); })
                      ->size({Hyprtoolkit::CDynamicSize::HT_SIZE_PERCENT, Hyprtoolkit::CDynamicSize::HT_SIZE_ABSOLUTE, {1.F, 40.F}})
+                     ->multiline(false)
                      ->commence();
 
     m_hr = Hyprtoolkit::CRectangleBuilder::begin()
