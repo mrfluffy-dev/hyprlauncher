@@ -2,6 +2,7 @@
 #include "helpers/Log.hpp"
 #include "finders/desktop/DesktopFinder.hpp"
 #include "finders/unicode/UnicodeFinder.hpp"
+#include "finders/math/MathFinder.hpp"
 #include "socket/ClientSocket.hpp"
 #include "socket/ServerSocket.hpp"
 #include "config/ConfigManager.hpp"
@@ -18,6 +19,7 @@ int main(int argc, char** argv, char** envp) {
 
     g_desktopFinder = makeUnique<CDesktopFinder>();
     g_unicodeFinder = makeUnique<CUnicodeFinder>();
+    g_mathFinder    = makeUnique<CMathFinder>();
 
     for (int i = 1; i < argc; ++i) {
         std::string_view sv{argv[i]};

@@ -126,9 +126,9 @@ void CDesktopFinder::cacheEntry(const std::string& path) {
         return std::string_view{DATA}.substr(begins, ends - begins);
     };
 
-    const auto NAME = extract("Name");
-    const auto ICON = extract("Icon");
-    const auto EXEC = extract("Exec");
+    const auto NAME      = extract("Name");
+    const auto ICON      = extract("Icon");
+    const auto EXEC      = extract("Exec");
     const auto NODISPLAY = extract("NoDisplay") == "true";
 
     if (EXEC.empty() || NAME.empty() || NODISPLAY) {

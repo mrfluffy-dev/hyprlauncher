@@ -4,12 +4,15 @@
 
 #include "../finders/desktop/DesktopFinder.hpp"
 #include "../finders/unicode/UnicodeFinder.hpp"
+#include "../finders/math/MathFinder.hpp"
 
 static WP<IFinder> finderForName(const std::string& x) {
     if (x == "desktop")
         return g_desktopFinder;
     if (x == "unicode")
         return g_unicodeFinder;
+    if (x == "math")
+        return g_mathFinder;
     return WP<IFinder>{};
 }
 
@@ -18,11 +21,14 @@ static std::pair<WP<IFinder>, bool> finderForPrefix(const char x) {
 
     static auto PDESKTOPPREFIX = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "finders:desktop_prefix");
     static auto PUNICODEPREFIX = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "finders:unicode_prefix");
+    static auto PMATHPREFIX    = Hyprlang::CSimpleConfigValue<Hyprlang::STRING>(g_configManager->m_config.get(), "finders:math_prefix");
 
     if (x == (*PDESKTOPPREFIX)[0])
         return {g_desktopFinder, true};
     if (x == (*PUNICODEPREFIX)[0])
         return {g_unicodeFinder, true};
+    if (x == (*PMATHPREFIX)[0])
+        return {g_mathFinder, true};
     return {finderForName(*PDEFAULTFINDER), false};
 }
 

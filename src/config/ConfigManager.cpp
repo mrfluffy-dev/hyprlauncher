@@ -15,6 +15,7 @@ CConfigManager::CConfigManager() : m_inotifyFd(inotify_init()) {
     m_config->addConfigValue("finders:default_finder", Hyprlang::STRING{"desktop"});
     m_config->addConfigValue("finders:desktop_prefix", Hyprlang::STRING{""});
     m_config->addConfigValue("finders:unicode_prefix", Hyprlang::STRING{"."});
+    m_config->addConfigValue("finders:math_prefix", Hyprlang::STRING{"="});
 
     m_config->commence();
 

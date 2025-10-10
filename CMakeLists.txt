@@ -30,6 +30,7 @@ pkg_check_modules(
   hyprwire
   icu-uc
   hyprlang
+  libqalculate
 )
 
 set(CMAKE_CXX_STANDARD 23)
