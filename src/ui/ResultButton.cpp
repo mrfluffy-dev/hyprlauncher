@@ -23,7 +23,9 @@ CResultButton::CResultButton() {
                   ->size({Hyprtoolkit::CDynamicSize::HT_SIZE_PERCENT, Hyprtoolkit::CDynamicSize::HT_SIZE_PERCENT, {1, 1}})
                   ->commence();
 
-    m_label->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_LEFT);
+    m_label->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
+    m_label->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_LEFT, true);
+    m_label->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_VCENTER, true);
 
     m_background->addChild(m_container);
     m_container->addChild(m_label);

@@ -42,7 +42,8 @@ CUI::CUI() {
                ->color([this] { return m_backend->getPalette()->m_colors.accent.darken(0.2F); })
                ->size({Hyprtoolkit::CDynamicSize::HT_SIZE_PERCENT, Hyprtoolkit::CDynamicSize::HT_SIZE_ABSOLUTE, {0.8F, 1.F}})
                ->commence();
-    m_hr->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_HCENTER);
+    m_hr->setPositionMode(Hyprtoolkit::IElement::HT_POSITION_ABSOLUTE);
+    m_hr->setPositionFlag(Hyprtoolkit::IElement::HT_POSITION_FLAG_HCENTER, true);
 
     m_scrollArea = Hyprtoolkit::CScrollAreaBuilder::begin()
                        ->size({Hyprtoolkit::CDynamicSize::HT_SIZE_PERCENT, Hyprtoolkit::CDynamicSize::HT_SIZE_ABSOLUTE, {1.F, 1.F}})
