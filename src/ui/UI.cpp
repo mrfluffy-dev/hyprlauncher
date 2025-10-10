@@ -34,7 +34,7 @@ CUI::CUI() {
     m_inputBox = Hyprtoolkit::CTextboxBuilder::begin()
                      ->placeholder("Search something...")
                      ->onTextEdited([](SP<Hyprtoolkit::CTextboxElement>, const std::string& query) { g_queryProcessor->scheduleQueryUpdate(query); })
-                     ->size({Hyprtoolkit::CDynamicSize::HT_SIZE_PERCENT, Hyprtoolkit::CDynamicSize::HT_SIZE_ABSOLUTE, {1.F, 40.F}})
+                     ->size({Hyprtoolkit::CDynamicSize::HT_SIZE_PERCENT, Hyprtoolkit::CDynamicSize::HT_SIZE_ABSOLUTE, {1.F, 28.F}})
                      ->multiline(false)
                      ->commence();
 
