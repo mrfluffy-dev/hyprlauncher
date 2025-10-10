@@ -78,7 +78,7 @@ CUI::CUI() {
         if (e.xkbKeysym == XKB_KEY_Escape)
             setWindowOpen(false);
         else if (e.xkbKeysym == XKB_KEY_Down) {
-            if (m_activeElementId < m_resultButtons.size())
+            if (m_activeElementId + 1 < m_currentResults.size())
                 m_activeElementId++;
             updateActive();
         } else if (e.xkbKeysym == XKB_KEY_Up) {
