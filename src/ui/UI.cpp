@@ -125,9 +125,15 @@ void CUI::setWindowOpen(bool open) {
     m_open = open;
 
     if (open) {
+        m_inputBox->rebuild()->defaultText("")->commence();
+
+        for (const auto& b : m_resultButtons) {
+            b->setLabel("");
+            b->setActive(false);
+        }
+
         m_window->open();
 
-        m_inputBox->rebuild()->defaultText("")->commence();
         m_inputBox->focus();
     } else
         m_window->close();
