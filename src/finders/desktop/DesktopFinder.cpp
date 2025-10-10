@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <sys/inotify.h>
+#include <sys/poll.h>
 
 #include <hyprutils/string/String.hpp>
 #include <hyprutils/os/Process.hpp>
@@ -77,7 +79,23 @@ static std::string resolvePath(std::string p) {
     return HOME + p.substr(1);
 }
 
-CDesktopFinder::CDesktopFinder() {
+CDesktopFinder::CDesktopFinder() : m_inotifyFd(inotify_init()) {
+    recache();
+
+    replantWatch();
+}
+
+void CDesktopFinder::onInotifyEvent() {
+    recache();
+
+    replantWatch();
+}
+
+void CDesktopFinder::recache() {
+    m_desktopEntryPaths.clear();
+    m_desktopEntryCache.clear();
+    m_desktopEntryCacheGeneric.clear();
+
     for (const auto& PATH : DESKTOP_ENTRY_PATHS) {
         std::error_code ec;
         auto            it = std::filesystem::directory_iterator(resolvePath(PATH), ec);
@@ -89,6 +107,36 @@ CDesktopFinder::CDesktopFinder() {
 
             cacheEntry(e.path().string());
         }
+
+        m_desktopEntryPaths.emplace_back(resolvePath(PATH));
+    }
+}
+
+void CDesktopFinder::replantWatch() {
+    for (const auto& w : m_watches) {
+        inotify_rm_watch(m_inotifyFd.get(), w);
+    }
+
+    m_watches.clear();
+
+    while (true) {
+        pollfd pfd = {
+            .fd     = m_inotifyFd.get(),
+            .events = POLLIN,
+        };
+
+        poll(&pfd, 1, 0);
+
+        if (!(pfd.revents & POLLIN))
+            break;
+
+        static char buf[1024];
+
+        read(m_inotifyFd.get(), buf, 1023);
+    }
+
+    for (const auto& p : m_desktopEntryPaths) {
+        m_watches.emplace_back(inotify_add_watch(m_inotifyFd.get(), p.c_str(), IN_MODIFY | IN_DONT_FOLLOW));
     }
 }
 

@@ -1,6 +1,7 @@
 #include "UI.hpp"
 #include "ResultButton.hpp"
 
+#include "../finders/desktop/DesktopFinder.hpp"
 #include "../query/QueryProcessor.hpp"
 #include "../socket/ServerSocket.hpp"
 #include "../helpers/Log.hpp"
@@ -112,6 +113,7 @@ void CUI::run() {
     }
 
     m_backend->addFd(g_configManager->m_inotifyFd.get(), [] { g_configManager->onInotifyEvent(); });
+    m_backend->addFd(g_desktopFinder->m_inotifyFd.get(), [] { g_desktopFinder->onInotifyEvent(); });
 
     m_backend->enterLoop();
 }
