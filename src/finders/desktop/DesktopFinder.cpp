@@ -1,6 +1,7 @@
 #include "DesktopFinder.hpp"
 #include "../../helpers/Log.hpp"
 #include "../Fuzzy.hpp"
+#include "../Cache.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -40,8 +41,15 @@ class CDesktopEntry : public IFinderResult {
         return FINDER_DESKTOP;
     }
 
+    virtual uint32_t frequency() {
+        return m_frequency;
+    }
+
     virtual void run() {
         Debug::log(TRACE, "Running {}", m_exec);
+
+        g_desktopFinder->m_entryFrequencyCache->incrementCachedEntry(m_fuzzable);
+        m_frequency = g_desktopFinder->m_entryFrequencyCache->getCachedEntry(m_fuzzable);
 
         // replace all funky codes with nothing
         auto toExec = m_exec;
@@ -62,6 +70,8 @@ class CDesktopEntry : public IFinderResult {
     }
 
     std::string m_name, m_exec, m_icon, m_fuzzable;
+
+    uint32_t    m_frequency = 0;
 };
 
 static constexpr std::array<const char*, 3> DESKTOP_ENTRY_PATHS = {"/usr/local/share/applications", "/usr/share/applications", "~/.local/share/applications"};
@@ -79,9 +89,12 @@ static std::string resolvePath(std::string p) {
     return HOME + p.substr(1);
 }
 
-CDesktopFinder::CDesktopFinder() : m_inotifyFd(inotify_init()) {
-    recache();
+CDesktopFinder::CDesktopFinder() : m_inotifyFd(inotify_init()), m_entryFrequencyCache(makeUnique<CEntryCache>("desktop")) {
+    ;
+}
 
+void CDesktopFinder::init() {
+    recache();
     replantWatch();
 }
 
@@ -190,6 +203,7 @@ void CDesktopFinder::cacheEntry(const std::string& path) {
     e->m_name     = NAME;
     e->m_fuzzable = NAME;
     std::ranges::transform(e->m_fuzzable, e->m_fuzzable.begin(), ::tolower);
+    e->m_frequency = m_entryFrequencyCache->getCachedEntry(e->m_fuzzable);
     m_desktopEntryCacheGeneric.emplace_back(e);
 
     Debug::log(TRACE, "Cached: {} with icon {} and exec line of \"{}\"", NAME, ICON, EXEC);

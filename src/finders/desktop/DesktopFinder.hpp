@@ -5,6 +5,7 @@
 #include <hyprutils/os/FileDescriptor.hpp>
 
 class CDesktopEntry;
+class CEntryCache;
 
 class CDesktopFinder : public IFinder {
   public:
@@ -12,6 +13,7 @@ class CDesktopFinder : public IFinder {
     virtual ~CDesktopFinder() = default;
 
     virtual std::vector<SFinderResult> getResultsForQuery(const std::string& query);
+    virtual void                       init();
 
     Hyprutils::OS::CFileDescriptor     m_inotifyFd;
 
@@ -24,9 +26,13 @@ class CDesktopFinder : public IFinder {
     std::vector<std::string>       m_desktopEntryPaths;
     std::vector<int>               m_watches;
 
+    UP<CEntryCache>                m_entryFrequencyCache;
+
     void                           cacheEntry(const std::string& path);
     void                           replantWatch();
     void                           recache();
+
+    friend class CDesktopEntry;
 };
 
 inline UP<CDesktopFinder> g_desktopFinder;

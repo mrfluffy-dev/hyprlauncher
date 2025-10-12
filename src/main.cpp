@@ -21,6 +21,10 @@ int main(int argc, char** argv, char** envp) {
     g_unicodeFinder = makeUnique<CUnicodeFinder>();
     g_mathFinder    = makeUnique<CMathFinder>();
 
+    g_desktopFinder->init();
+    g_unicodeFinder->init();
+    g_mathFinder->init();
+
     for (int i = 1; i < argc; ++i) {
         std::string_view sv{argv[i]};
 

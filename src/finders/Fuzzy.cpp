@@ -75,7 +75,7 @@ struct SScoreData {
 static void workerFn(std::vector<SScoreData>& scores, const std::vector<SP<IFinderResult>>& in, const std::string& query, size_t start, size_t end) {
     for (size_t i = start; i < end; ++i) {
         auto& ref  = scores[i];
-        ref.score  = jaroWinklerFull(query, in[i]->fuzzable());
+        ref.score  = jaroWinklerFull(query, in[i]->fuzzable()) + in[i]->frequency() * 0.1F;
         ref.result = in[i];
     }
 }

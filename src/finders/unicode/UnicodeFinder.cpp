@@ -1,6 +1,7 @@
 #include "UnicodeFinder.hpp"
 #include "../../helpers/Log.hpp"
 #include "../Fuzzy.hpp"
+#include "../Cache.hpp"
 
 #include <algorithm>
 #include <unicode/uchar.h>
@@ -24,21 +25,34 @@ class CUnicodeEntry : public IFinderResult {
         return FINDER_UNICODE;
     }
 
+    virtual uint32_t frequency() {
+        return m_frequency;
+    }
+
     virtual void run() {
         Debug::log(TRACE, "Copying {} with wl-copy", m_unicode);
+
+        g_unicodeFinder->m_entryFrequencyCache->incrementCachedEntry(m_unicode);
+        m_frequency = g_unicodeFinder->m_entryFrequencyCache->getCachedEntry(m_unicode);
 
         CProcess proc("wl-copy", {m_unicode});
         proc.runAsync();
     }
 
     std::string m_name, m_unicode, m_fuzzable;
+
+    uint32_t    m_frequency = 0;
 };
 
 static bool isSurrogate(UChar32 cp) {
     return cp >= 0xD800 && cp <= 0xDFFF;
 }
 
-CUnicodeFinder::CUnicodeFinder() {
+CUnicodeFinder::CUnicodeFinder() : m_entryFrequencyCache(makeUnique<CEntryCache>("unicode")) {
+    ;
+}
+
+void CUnicodeFinder::init() {
     for (UChar32 cp = 0; cp <= 0x10FFFF; ++cp) {
         if (isSurrogate(cp))
             continue;
@@ -70,6 +84,7 @@ CUnicodeFinder::CUnicodeFinder() {
         e->m_fuzzable = name;
         std::ranges::transform(e->m_fuzzable, e->m_fuzzable.begin(), ::tolower);
         std::ranges::transform(e->m_name, e->m_name.begin(), ::toupper);
+        e->m_frequency = g_unicodeFinder->m_entryFrequencyCache->getCachedEntry(e->m_unicode);
         m_unicodeEntryCacheGeneric.emplace_back(e);
     }
 }

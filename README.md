@@ -6,9 +6,9 @@ A multipurpose and versatile launcher / picker for Hyprland
 ## Features
 
 - Various providers: Desktop, Unicode, Emoji, Math ...
-- Fast, multi-threaded fuzzy searching
-- Daemon by default
-- Very fast opening
+- Speedy: Fast, multi-threaded fuzzy searching
+- Daemon by default: instant opening of the launcher
+- Entry frequency caching: commonly used entries appear above others
 
 ## Runtime dependencies
 

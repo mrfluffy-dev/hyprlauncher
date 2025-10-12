@@ -20,6 +20,8 @@ class IFinder {
 
     virtual std::vector<SFinderResult> getResultsForQuery(const std::string& query) = 0;
 
+    virtual void                       init();
+
   protected:
     IFinder() = default;
 };
