@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include <vector>
 #include <unordered_map>
 
 class CEntryCache {
@@ -21,9 +22,9 @@ class CEntryCache {
 
     struct SCacheEntry {
         uint32_t value = 0;
-        uint64_t epoch = 0;
     };
 
     std::unordered_map<std::string, SCacheEntry> m_cache;
+    std::vector<std::string>                     m_cacheStrings;
     std::string                                  m_cacheFullPath;
 };
