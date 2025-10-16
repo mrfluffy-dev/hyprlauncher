@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hyprwire/hyprwire.hpp>
+#include <hyprlauncher_core-client.hpp>
 
 #include "../helpers/Memory.hpp"
 
@@ -14,9 +15,9 @@ class CClientIPCSocket {
     void sendOpen();
 
   private:
-    SP<Hyprwire::IClientSocket> m_socket;
+    SP<Hyprwire::IClientSocket>         m_socket;
 
-    SP<Hyprwire::IObject>       m_protocolMgrObject;
+    SP<CCHyprlauncherCoreManagerObject> m_manager;
 
-    std::string                 m_socketPath = "";
+    std::string                         m_socketPath = "";
 };

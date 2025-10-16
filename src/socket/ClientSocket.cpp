@@ -1,27 +1,9 @@
 #include "ClientSocket.hpp"
-#include "LauncherProtocolSpec.hpp"
 
 #include <cstdlib>
 
-constexpr const char* SOCKET_NAME = ".hyprlauncher.sock";
-
-class CHyprlauncherProtocolImpl : public Hyprwire::IProtocolClientImplementation {
-  public:
-    virtual ~CHyprlauncherProtocolImpl() = default;
-
-    virtual SP<Hyprwire::IProtocolSpec> protocol() {
-        return g_hyprlauncherProto;
-    }
-
-    virtual std::vector<SP<Hyprwire::SClientObjectImplementation>> implementation() {
-        return {
-            makeShared<Hyprwire::SClientObjectImplementation>(Hyprwire::SClientObjectImplementation{
-                .objectName = "hyprlanuncher_manager_v1",
-                .version    = 1,
-            }),
-        };
-    }
-};
+constexpr const char*             SOCKET_NAME = ".hyprlauncher.sock";
+static SP<CCHyprlauncherCoreImpl> g_coreImpl;
 
 CClientIPCSocket::CClientIPCSocket() {
     const auto RTDIR = getenv("XDG_RUNTIME_DIR");
@@ -36,21 +18,23 @@ CClientIPCSocket::CClientIPCSocket() {
     if (!m_socket)
         return;
 
-    m_socket->addImplementation(makeShared<CHyprlauncherProtocolImpl>());
+    g_coreImpl = makeShared<CCHyprlauncherCoreImpl>(1);
+
+    m_socket->addImplementation(g_coreImpl);
 
     if (!m_socket->waitForHandshake())
         return;
 
-    auto spec = m_socket->getSpec(g_hyprlauncherProto->specName());
+    auto spec = m_socket->getSpec(g_coreImpl->protocol()->specName());
 
     if (!spec) {
         m_socket.reset();
         return;
     }
 
-    m_protocolMgrObject = m_socket->bindProtocol(g_hyprlauncherProto, 1);
+    m_manager = makeShared<CCHyprlauncherCoreManagerObject>(m_socket->bindProtocol(g_coreImpl->protocol(), 1));
 
-    if (!m_protocolMgrObject) {
+    if (!m_manager) {
         m_socket.reset();
         return;
     }
@@ -59,5 +43,5 @@ CClientIPCSocket::CClientIPCSocket() {
 }
 
 void CClientIPCSocket::sendOpen() {
-    m_protocolMgrObject->call(0 /* set_state */, 1);
+    m_manager->sendSetOpenState(1 /* open */);
 }

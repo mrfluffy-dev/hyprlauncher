@@ -51,9 +51,41 @@ else()
   message(STATUS "Configuring hyprlauncher in Release")
 endif()
 
-file(GLOB_RECURSE SRCFILES CONFIGURE_DEPENDS "src/*.cpp" "include/*.hpp")
+file(GLOB_RECURSE SRCFILES CONFIGURE_DEPENDS "src/*.cpp" "protocols/*.cpp" "include/*.hpp")
 
 add_executable(hyprlauncher ${SRCFILES})
+
+function(hyprprotocol protoPath protoName)
+  set(path ${CMAKE_SOURCE_DIR}/${protoPath})
+  add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/protocols/${protoName}-client.cpp
+           ${CMAKE_SOURCE_DIR}/protocols/${protoName}-client.hpp
+           ${CMAKE_SOURCE_DIR}/protocols/${protoName}-spec.hpp
+    COMMAND hyprwire-scanner --client ${path}/${protoName}.xml
+            ${CMAKE_SOURCE_DIR}/protocols/
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  target_sources(hyprlauncher PRIVATE protocols/${protoName}-client.cpp
+                                   protocols/${protoName}-client.hpp
+                                   protocols/${protoName}-spec.hpp)
+endfunction()
+
+function(hyprprotocolServer protoPath protoName)
+  set(path ${CMAKE_SOURCE_DIR}/${protoPath})
+  add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/protocols/${protoName}-server.cpp
+           ${CMAKE_SOURCE_DIR}/protocols/${protoName}-server.hpp
+    COMMAND hyprwire-scanner ${path}/${protoName}.xml
+            ${CMAKE_SOURCE_DIR}/protocols/
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  target_sources(hyprlauncher PRIVATE protocols/${protoName}-server.cpp
+                                   protocols/${protoName}-server.hpp
+                                   )
+endfunction()
+
+hyprprotocol(protocols hyprlauncher_core)
+hyprprotocolServer(protocols hyprlauncher_core)
+
+target_include_directories(hyprlauncher PRIVATE "./protocols")
 
 target_link_libraries(hyprlauncher PkgConfig::deps)
 

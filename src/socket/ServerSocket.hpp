@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hyprwire/hyprwire.hpp>
+#include <hyprlauncher_core-server.hpp>
 
 #include "../helpers/Memory.hpp"
 
@@ -10,9 +11,13 @@ class CServerIPCSocket {
     ~CServerIPCSocket() = default;
 
   private:
-    SP<Hyprwire::IServerSocket> m_socket;
+    void                                            setOpenState(uint32_t state);
 
-    std::string                 m_socketPath = "";
+    SP<Hyprwire::IServerSocket>                     m_socket;
+
+    std::string                                     m_socketPath = "";
+
+    std::vector<SP<CHyprlauncherCoreManagerObject>> m_managers;
 
     friend class CUI;
 };

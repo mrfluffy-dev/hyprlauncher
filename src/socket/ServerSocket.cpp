@@ -1,43 +1,11 @@
 #include "ServerSocket.hpp"
-#include "LauncherProtocolSpec.hpp"
 #include "../ui/UI.hpp"
 
 #include <cstdlib>
 
-constexpr const char* SOCKET_NAME = ".hyprlauncher.sock";
+constexpr const char*            SOCKET_NAME = ".hyprlauncher.sock";
 
-//
-static void onSetState(Hyprwire::IObject* o, uint32_t mode) {
-    if (mode == 0)
-        g_ui->setWindowOpen(!g_ui->windowOpen());
-    else if (mode == 1)
-        g_ui->setWindowOpen(true);
-    else
-        g_ui->setWindowOpen(false);
-}
-
-static void onBind(SP<Hyprwire::IObject> obj) {
-    obj->listen(0, rc<void*>(::onSetState));
-}
-
-class CHyprlauncherServerProtocolImpl : public Hyprwire::IProtocolServerImplementation {
-  public:
-    virtual ~CHyprlauncherServerProtocolImpl() = default;
-
-    virtual SP<Hyprwire::IProtocolSpec> protocol() {
-        return g_hyprlauncherProto;
-    }
-
-    virtual std::vector<SP<Hyprwire::SServerObjectImplementation>> implementation() {
-        return {
-            makeShared<Hyprwire::SServerObjectImplementation>(Hyprwire::SServerObjectImplementation{
-                .objectName = "hyprlanuncher_manager_v1",
-                .version    = 1,
-                .onBind     = ::onBind,
-            }),
-        };
-    }
-};
+static SP<CHyprlauncherCoreImpl> g_coreImpl;
 
 CServerIPCSocket::CServerIPCSocket() {
     const auto RTDIR = getenv("XDG_RUNTIME_DIR");
@@ -52,7 +20,21 @@ CServerIPCSocket::CServerIPCSocket() {
     if (!m_socket)
         return;
 
-    auto x = makeShared<CHyprlauncherServerProtocolImpl>();
+    g_coreImpl = makeShared<CHyprlauncherCoreImpl>(1, [this](SP<Hyprwire::IObject> obj) {
+        auto manager = m_managers.emplace_back(makeShared<CHyprlauncherCoreManagerObject>(std::move(obj)));
 
-    m_socket->addImplementation(x);
+        manager->setSetOpenState([this](uint32_t state) { setOpenState(state); });
+        manager->setOnDestroy([this, weak = WP<CHyprlauncherCoreManagerObject>{manager}] { std::erase(m_managers, weak); });
+    });
+
+    m_socket->addImplementation(g_coreImpl);
+}
+
+void CServerIPCSocket::setOpenState(uint32_t state) {
+    switch (state) {
+        case 0: g_ui->setWindowOpen(!g_ui->windowOpen()); break;
+        case 1: g_ui->setWindowOpen(true); break;
+        case 2: g_ui->setWindowOpen(false); break;
+        default: break;
+    }
 }
