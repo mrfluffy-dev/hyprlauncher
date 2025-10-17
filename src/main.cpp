@@ -27,6 +27,8 @@ int main(int argc, char** argv, char** envp) {
     g_unicodeFinder->init();
     g_mathFinder->init();
 
+    bool openByDefault = true;
+
     for (int i = 1; i < argc; ++i) {
         std::string_view sv{argv[i]};
 
@@ -36,6 +38,9 @@ int main(int argc, char** argv, char** envp) {
         } else if (sv == "--quiet") {
             Debug::quiet = true;
             continue;
+        } else if (sv == "-d" || sv == "--daemon") {
+            openByDefault = false;
+            continue;
         }
     }
 
@@ -44,7 +49,7 @@ int main(int argc, char** argv, char** envp) {
     g_configManager = makeUnique<CConfigManager>();
     g_configManager->parse();
 
-    g_ui = makeUnique<CUI>();
+    g_ui = makeUnique<CUI>(openByDefault);
     g_ui->run();
     return 0;
 }

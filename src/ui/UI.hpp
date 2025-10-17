@@ -20,7 +20,7 @@ class CResultButton;
 
 class CUI {
   public:
-    CUI();
+    CUI(bool open);
     ~CUI();
 
     void run();
@@ -47,6 +47,7 @@ class CUI {
     std::vector<SP<CResultButton>>        m_resultButtons;
 
     bool                                  m_open            = false;
+    bool                                  m_openByDefault   = true;
     size_t                                m_activeElementId = 0;
 
     friend class CQueryProcessor;

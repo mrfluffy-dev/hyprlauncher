@@ -15,7 +15,7 @@ using namespace Hyprutils::String;
 
 constexpr const size_t MAX_RESULTS_IN_LAUNCHER = 25;
 
-CUI::CUI() {
+CUI::CUI(bool open) : m_openByDefault(open) {
     static auto PGRABFOCUS = Hyprlang::CSimpleConfigValue<Hyprlang::INT>(g_configManager->m_config.get(), "general:grab_focus");
 
     m_backend = Hyprtoolkit::CBackend::create();
@@ -103,7 +103,8 @@ void CUI::run() {
         m_resultsLayout->addChild(b->m_background);
     }
 
-    setWindowOpen(true);
+    if (m_openByDefault)
+        setWindowOpen(true);
 
     if (g_serverIPCSocket->m_socket) {
         m_backend->addFd(g_serverIPCSocket->m_socket->extractLoopFD(), [] {
@@ -146,8 +147,6 @@ void CUI::setWindowOpen(bool open) {
         m_inputBox->focus();
     } else
         m_window->close();
-
-    
 }
 
 bool CUI::windowOpen() {
