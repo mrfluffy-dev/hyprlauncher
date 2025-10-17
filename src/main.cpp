@@ -7,6 +7,16 @@
 #include "socket/ServerSocket.hpp"
 #include "config/ConfigManager.hpp"
 
+#include <iostream>
+
+static void printHelp() {
+    std::cout << "Hyprlauncher usage: hyprlauncher [arg [...]].\n\nArguments:\n"
+              << " -d | --daemon              | Do not open after initializing\n"
+              << " -h | --help                | Print this menu\n"
+              << "    | --quiet               | Disable all logging\n"
+              << "    | --verbose             | Enable too much logging\n";
+}
+
 int main(int argc, char** argv, char** envp) {
 
     auto socket = makeShared<CClientIPCSocket>();
@@ -41,6 +51,9 @@ int main(int argc, char** argv, char** envp) {
         } else if (sv == "-d" || sv == "--daemon") {
             openByDefault = false;
             continue;
+        } else if (sv == "-h" || sv == "--help") {
+            printHelp();
+            return 0;
         }
     }
 
