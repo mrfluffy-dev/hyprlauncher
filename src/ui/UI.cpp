@@ -122,7 +122,16 @@ void CUI::setWindowOpen(bool open) {
     if (open == m_open)
         return;
 
+    static int counter = 0;
+
+    counter++;
+
     m_open = open;
+
+    if (counter > 1) {
+        Debug::log(LOG, "test {}", counter);
+        std::fflush(stdout);
+    }
 
     if (open) {
         m_inputBox->rebuild()->defaultText("")->commence();
@@ -137,6 +146,8 @@ void CUI::setWindowOpen(bool open) {
         m_inputBox->focus();
     } else
         m_window->close();
+
+    
 }
 
 bool CUI::windowOpen() {

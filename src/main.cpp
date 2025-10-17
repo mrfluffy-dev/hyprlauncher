@@ -17,6 +17,8 @@ int main(int argc, char** argv, char** envp) {
         return 0;
     }
 
+    g_serverIPCSocket = makeUnique<CServerIPCSocket>();
+
     g_desktopFinder = makeUnique<CDesktopFinder>();
     g_unicodeFinder = makeUnique<CUnicodeFinder>();
     g_mathFinder    = makeUnique<CMathFinder>();
@@ -39,8 +41,7 @@ int main(int argc, char** argv, char** envp) {
 
     socket.reset();
 
-    g_serverIPCSocket = makeUnique<CServerIPCSocket>();
-    g_configManager   = makeUnique<CConfigManager>();
+    g_configManager = makeUnique<CConfigManager>();
     g_configManager->parse();
 
     g_ui = makeUnique<CUI>();
