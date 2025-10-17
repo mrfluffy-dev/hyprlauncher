@@ -13,29 +13,17 @@ static void printHelp() {
     std::cout << "Hyprlauncher usage: hyprlauncher [arg [...]].\n\nArguments:\n"
               << " -d | --daemon              | Do not open after initializing\n"
               << " -h | --help                | Print this menu\n"
+              << " -v | --version             | Print version info\n"
               << "    | --quiet               | Disable all logging\n"
-              << "    | --verbose             | Enable too much logging\n";
+              << "    | --verbose             | Enable too much logging\n"
+              << std::endl;
+}
+
+static void printVersion() {
+    std::cout << "Hyprlauncher v" << HYPRLAUNCHER_VERSION << std::endl;
 }
 
 int main(int argc, char** argv, char** envp) {
-
-    auto socket = makeShared<CClientIPCSocket>();
-
-    if (socket->m_connected) {
-        Debug::log(LOG, "Active instance already, opening launcher.");
-        socket->sendOpen();
-        return 0;
-    }
-
-    g_serverIPCSocket = makeUnique<CServerIPCSocket>();
-
-    g_desktopFinder = makeUnique<CDesktopFinder>();
-    g_unicodeFinder = makeUnique<CUnicodeFinder>();
-    g_mathFinder    = makeUnique<CMathFinder>();
-
-    g_desktopFinder->init();
-    g_unicodeFinder->init();
-    g_mathFinder->init();
 
     bool openByDefault = true;
 
@@ -54,8 +42,32 @@ int main(int argc, char** argv, char** envp) {
         } else if (sv == "-h" || sv == "--help") {
             printHelp();
             return 0;
+        } else if (sv == "-v" || sv == "--version") {
+            printVersion();
+            return 0;
+        } else {
+            Debug::log(ERR, "Unrecognized argument: {}", sv);
+            return 1;
         }
     }
+
+    auto socket = makeShared<CClientIPCSocket>();
+
+    if (socket->m_connected) {
+        Debug::log(LOG, "Active instance already, opening launcher.");
+        socket->sendOpen();
+        return 0;
+    }
+
+    g_serverIPCSocket = makeUnique<CServerIPCSocket>();
+
+    g_desktopFinder = makeUnique<CDesktopFinder>();
+    g_unicodeFinder = makeUnique<CUnicodeFinder>();
+    g_mathFinder    = makeUnique<CMathFinder>();
+
+    g_desktopFinder->init();
+    g_unicodeFinder->init();
+    g_mathFinder->init();
 
     socket.reset();
 
