@@ -66,9 +66,13 @@ void CIPCFinder::setData(const std::vector<std::string>& data) {
 }
 
 std::vector<SFinderResult> CIPCFinder::getResultsForQuery(const std::string& query) {
-    std::vector<SFinderResult> results;
+    std::vector<SFinderResult>     results;
 
-    auto                       fuzzed = Fuzzy::getNResults(m_entriesGeneric, query, MAX_RESULTS_PER_FINDER);
+    std::vector<SP<IFinderResult>> fuzzed;
+    if (!query.empty())
+        fuzzed = Fuzzy::getNResults(m_entriesGeneric, query, MAX_RESULTS_PER_FINDER);
+    else
+        fuzzed = std::vector<SP<IFinderResult>>{m_entriesGeneric.begin(), m_entriesGeneric.begin() + std::min(m_entriesGeneric.size(), MAX_RESULTS_PER_FINDER)};
 
     results.reserve(fuzzed.size());
 
