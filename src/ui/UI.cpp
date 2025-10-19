@@ -136,8 +136,10 @@ void CUI::setWindowOpen(bool open) {
         m_inputBox->focus();
 
         g_queryProcessor->scheduleQueryUpdate("");
-    } else
+    } else {
         m_window->close();
+        g_queryProcessor->overrideQueryProvider(WP<IFinder>{});
+    }
 
     g_serverIPCSocket->sendOpenState(open);
 }
